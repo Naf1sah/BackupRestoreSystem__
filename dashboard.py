@@ -1,11 +1,13 @@
 # dashboard.py
-import os, json, pathlib, re, datetime as dt
-from flask import Flask, jsonify, render_template_string
+import os, json, pathlib, re, datetime as dt, threading
+from flask import Flask, jsonify, render_template_string, request
+from simulate_header import simulate_header_corruption_safe
+from progress import emit 
 
 LOG_PATH = pathlib.Path(os.getenv("PROGRESS_LOG_PATH", "progress_events.jsonl"))  ##mengambil file log dari environment variable
 app = Flask(__name__)
 
-## membaca file log JSONL baris demi baris dan mengembalikan data JSON satu-persatu
+# ---------- FUNGSI MEMBACA LOG ----------
 def _iter_events():
     if not LOG_PATH.exists():
         return
@@ -18,7 +20,8 @@ def _iter_events():
                 yield json.loads(line) ##ubah teks JSON jadi objek python (dictionary)
             except Exception:
                 continue
-
+            
+# ---------- API SUMMARY + EVENTS ----------
 @app.route("/api/summary") ##fungsi flask, endpoint API flask yang bisa diakses lewat URL
 def api_summary():
     files_seen = {} ##menyimpan info semua file yang pernah di-hash (file asli)
@@ -199,7 +202,7 @@ PAGE = r"""
     </div>
   </div>
 
-## JAVASCRIPT
+<!-- JAVASCRIPT -->
 <script>
 let state = null;
 let ratioChart, durChart, pieChart;
@@ -368,56 +371,88 @@ async function refresh(){
 let ransomChart;
 
 async function refreshRansom(){
-  const r = await fetch('/api/ransom_status');
-  const data = await r.json();
+  // Coba ambil status ransomware
+  const ransomRes = await fetch('/api/ransom_status');
+  const ransomData = await ransomRes.json();
+
+  // Coba ambil status header corruption
+  const headerRes = await fetch('/api/header_status');
+  const headerData = await headerRes.json();
 
   const el = document.getElementById('ransomStat');
-  if(!data.total){
-    el.textContent = "Belum ada aktivitas ransomware.";
-    if(ransomChart){ ransomChart.destroy(); ransomChart = null; }
-    return;
-  }
+  const chartCanvas = document.getElementById('ransomChart');
 
-  el.innerHTML = `
-    <b>Total File:</b> ${data.total} &nbsp; | &nbsp;
-    <b>Terenkripsi:</b> ${data.encrypted} &nbsp; | &nbsp;
-    <b>Didekripsi:</b> ${data.decrypted} &nbsp; | &nbsp;
-    <b>Status:</b> ${data.running ? '<span class="bad">Berjalan</span>' : '<span class="ok">Selesai</span>'}
-  `;
+  // Tentukan mode aktif (kalau header sedang "Running", maka header mode)
+  const isHeaderMode = (headerData.total_success + headerData.total_fail) > 0;
 
-  const donePct = data.total ? (data.encrypted / data.total * 100).toFixed(1) : 0;
-  const decPct  = data.total ? (data.decrypted / data.total * 100).toFixed(1) : 0;
+  // Hapus chart lama biar stabil
+  if (ransomChart) { ransomChart.destroy(); ransomChart = null; }
 
-  if(!ransomChart){
-    ransomChart = new Chart(document.getElementById('ransomChart'), {
-      type:'doughnut',
-      data:{
-        labels:['Encrypted','Decrypted','Remaining'],
-        datasets:[{data:[
-          data.encrypted,
-          data.decrypted,
-          Math.max(0, data.total - data.encrypted - data.decrypted)
-        ]}]
+  if (isHeaderMode) {
+    // MODE HEADER CORRUPTIONr
+    el.innerHTML = `
+      <b>Mode:</b> Header Corruption &nbsp; | &nbsp;
+      <b>Status:</b> ${headerData.status} &nbsp; | &nbsp;
+      <b>Berhasil:</b> ${headerData.total_success} &nbsp; | &nbsp;
+      <b>Gagal:</b> ${headerData.total_fail}
+    `;
+
+    ransomChart = new Chart(chartCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Success', 'Fail'],
+        datasets: [{
+          data: [headerData.total_success, headerData.total_fail],
+          backgroundColor: ['#4CAF50', '#F44336']
+        }]
       },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{ legend:{ display:true } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true } }
       }
     });
+
   } else {
-    ransomChart.data.datasets[0].data = [
-      data.encrypted,
-      data.decrypted,
-      Math.max(0, data.total - data.encrypted - data.decrypted)
-    ];
-    ransomChart.update();
+    // MODE RANSOMWARE
+    if (!ransomData.total) {
+      el.textContent = "Belum ada aktivitas ransomware.";
+      return;
+    }
+
+    el.innerHTML = `
+      <b>Mode:</b> Ransomware &nbsp; | &nbsp;
+      <b>Total File:</b> ${ransomData.total} &nbsp; | &nbsp;
+      <b>Terenkripsi:</b> ${ransomData.encrypted} &nbsp; | &nbsp;
+      <b>Didekripsi:</b> ${ransomData.decrypted} &nbsp; | &nbsp;
+      <b>Status:</b> ${ransomData.running
+        ? '<span class="bad">Berjalan</span>'
+        : '<span class="ok">Selesai</span>'}
+    `;
+
+    ransomChart = new Chart(chartCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Encrypted', 'Decrypted', 'Remaining'],
+        datasets: [{
+          data: [
+            ransomData.encrypted,
+            ransomData.decrypted,
+            Math.max(0, ransomData.total - ransomData.encrypted - ransomData.decrypted)
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true } }
+      }
+    });
   }
 }
 
 setInterval(refreshRansom, 3000);
 refreshRansom();
-
 
 document.addEventListener('change', (ev)=>{
   if(ev.target && ev.target.id === 'fileSel' && state){
@@ -434,14 +469,13 @@ setInterval(refresh, 5000);
 </html>
 """
 
-@app.route("/") ## Menampilkan tampilan dashboard interaktif
+
+# ---------- HALAMAN UTAMA DASHBOARD ----------
+@app.route("/")
 def index():
     return render_template_string(PAGE)
 
-@app.route("/status") ## endpoint cuma buat cek apakah server flasknya berjalan
-def status():
-    return "OK. Buka / (halaman interaktif) atau /api/summary"
-
+# ---------- ENDPOINT SIMULASI WANNACRY ----------
 @app.route("/api/ransom_status") ##API menyediakan data status simulasi ransomware untuk ditampilkan di dashboard
 def api_ransom_status():
     total_files = 0
@@ -496,6 +530,46 @@ def api_ransom_status():
         "running": running,
         "last_event": last_event
     })
+
+# ---------- ENDPOINT SIMULASI HEADER ----------
+@app.route("/api/header_status")
+def api_header_status():
+    # Inisialisasi variabel untuk status header corruption
+    status = "No report found"
+    total_success = 0
+    total_fail = 0
+    mode = "unknown"
+
+    # Membaca event dari log untuk mendapatkan status simulasi
+    for ev in _iter_events() or []:
+        typ = ev.get("event") or ev.get("type")
+        data = ev.get("data") or {}
+
+        # --- RESET jika ada event header_reset (misal mode normal) ---
+        if typ in ("header_reset","system_start", "start_normal_mode"):
+            total_success = 0
+            total_fail = 0
+            continue
+
+        if typ == "hdr_corrupt_start":
+            status = "Running"
+        elif typ == "hdr_done":
+            total_success = data.get("success", 0)
+            total_fail = data.get("fail", 0)
+            mode = data.get("mode", "unknown")
+            status = "Done"
+        elif typ == "hdr_corrupt_error":
+            status = "Error"
+
+    return jsonify({
+        "status": status,
+        "total_success": total_success,
+        "total_fail": total_fail,
+        "mode": mode
+    })
+
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5100)

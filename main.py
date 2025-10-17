@@ -28,13 +28,12 @@ from config import (
 
 from utils import (
     load_json, save_json, ensure_dir, get_sha256,
-    is_drive_mounted,find_vhdx_in_folder,
+    is_drive_mounted, find_vhdx_in_folder,
     show_all_hash_popup, save_per_file_plot, evaluate_and_save
 )
 from backup_restore import backup_file, restore_file
 from simulate import simulate_ransomware_safe
 from simulate_header import simulate_header_corruption_safe
-
 
 from progress import emit, stage  # Dashboard
 
@@ -52,6 +51,8 @@ args = parser.parse_args()
 
 if args.mode == "normal":
     emit("ransom_reset")  # Tambah event reset ransomware
+    emit("header_reset")
+
 
 # ==================== GOOGLE DRIVE HELPERS ====================
 def md5_of_file(path):
@@ -60,6 +61,7 @@ def md5_of_file(path):
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
+
 
 def get_drive_service_oauth(credentials_file, token_file, scopes):
     """
@@ -98,12 +100,12 @@ def get_drive_service_oauth(credentials_file, token_file, scopes):
     # 3) Jika belum ada creds valid → jalankan alur login lokal
     if not creds:
         flow = InstalledAppFlow.from_client_secrets_file(credentials_file, scopes)
-        # port=0 → pilih port bebas otomatis
-        creds = flow.run_local_server(port=0)
+        creds = flow.run_local_server(port=0)  # port=0 → pilih port bebas otomatis
         with open(token_file, "w") as token:
             token.write(creds.to_json())
 
     return build("drive", "v3", credentials=creds)
+
 
 def find_folder_id_by_name(service, name):
     safe = name.replace("'", "\\'")
@@ -112,12 +114,14 @@ def find_folder_id_by_name(service, name):
     files = resp.get("files", [])
     return files[0]["id"] if files else None
 
+
 def find_file_in_folder_by_name(service, folder_id, name):
     safe = name.replace("'", "\\'")
     q = f"'{folder_id}' in parents and name='{safe}' and trashed=false"
     resp = service.files().list(q=q, fields="files(id,name,md5Checksum,size)").execute()
     files = resp.get("files", [])
     return files[0] if files else None
+
 
 def upload_file_to_drive(service, folder_id, local_file_path, description=None, on_duplicate="update"):
     file_name = os.path.basename(local_file_path)
@@ -159,6 +163,7 @@ def upload_file_to_drive(service, folder_id, local_file_path, description=None, 
     emit("gdrive_upload_created", file=file_name, file_id=created['id'])
     return created["id"]
 
+
 def drive_list_children(service, folder_id):
     q = f"'{folder_id}' in parents and trashed=false"
     page_token = None
@@ -174,6 +179,7 @@ def drive_list_children(service, folder_id):
         if not page_token:
             break
 
+
 def drive_walk(service, root_folder_id, prefix=""):
     stack = [(root_folder_id, prefix)]
     while stack:
@@ -187,6 +193,7 @@ def drive_walk(service, root_folder_id, prefix=""):
                 rel_path = os.path.join(pfx, name) if pfx else name
                 yield (item["id"], rel_path.replace("\\", "/"), item.get("md5Checksum"))
 
+
 def download_drive_file(service, file_id, local_path):
     ensure_dir(os.path.dirname(local_path))
     request = service.files().get_media(fileId=file_id)
@@ -198,7 +205,6 @@ def download_drive_file(service, file_id, local_path):
 
 
 # ==================== POWER SHELL HELPERS ====================
-
 def _ps_exe():
     """
     Cari executable PowerShell yang tersedia.
@@ -232,7 +238,6 @@ def _ps_exe():
     )
 
 
-
 # ==================== VHDX MOUNT/UNMOUNT – UTIL POWERSHELL ====================
 def _run_ps(ps_script: str):
     exe = _ps_exe()
@@ -254,7 +259,7 @@ if ($drv -or $vol) {{ 'OK' }} else {{ 'NO' }}
     code, out, _ = _run_ps(ps)
     return "OK" in out
 
-# ======== FUNGSI LAMA (dipertahankan) ========
+
 def remove_drive_letter(letter):
     ps = rf"""
 $ErrorActionPreference = 'SilentlyContinue'
@@ -273,8 +278,8 @@ try {{
     else:
         print(f"[VHD] Warning: gagal melepas letter {letter}. out={out} err={err}")
 
-def force_unmount_airgap_by_drive(letter:
-                                   str):
+
+def force_unmount_airgap_by_drive(letter: str):
     ps = rf"""
 $ErrorActionPreference = 'SilentlyContinue'
 $dl = '{letter}'
@@ -294,6 +299,7 @@ exit 1
     rc, out, err = _run_ps(ps)
     print(f"[VHD] force_unmount stdout: {out}")
     return "UNMOUNTED:" in out
+
 
 def repair_access_path(letter: str, diskno: int = None, partno: int = None):
     if diskno is not None and partno is not None:
@@ -315,6 +321,7 @@ if ($p) {{
 """
     _run_ps(ps)
 
+
 def wait_for_drive(letter: str, timeout_s: float = 30.0) -> bool:
     t0 = time.time()
     while time.time() - t0 < timeout_s:
@@ -323,7 +330,7 @@ def wait_for_drive(letter: str, timeout_s: float = 30.0) -> bool:
         time.sleep(0.3)
     return is_drive_mounted_ps(letter)
 
-# ======== FUNGSI BARU (stabil) ========
+
 def attempt_mount_vhdx_and_assign(vhdx_path, drive_letter, read_only=False):
     ro = "-ReadOnly" if read_only else ""
     ps = rf"""
@@ -373,6 +380,7 @@ try {{
     emit("airgap_mount_fail", drive=drive_letter, rc=code, out=out, err=err)
     return False
 
+
 def reset_airgap(vhdx_path, drive_letter):
     """Panggil reset-airgap.ps1 sebelum mount VHDX (tanpa ubah alur)."""
     ps_script = os.path.join(os.path.dirname(vhdx_path), "reset-airgap.ps1")
@@ -380,7 +388,7 @@ def reset_airgap(vhdx_path, drive_letter):
         print(f"[WARN] reset-airgap.ps1 tidak ditemukan di {ps_script}")
         emit("airgap_reset_missing", path=ps_script)
         return
-    exe = _ps_exe()  # <<< gunakan exe yang terdeteksi
+    exe = _ps_exe()
     cmd = [
         exe, "-NoProfile", "-ExecutionPolicy", "Bypass",
         "-File", ps_script,
@@ -415,6 +423,7 @@ try {{
     code, out, err = _run_ps(ps)
     print(f"[VHD] Cleanup rc={code}, out={out}, err={err}")
     emit("airgap_unmount", rc=code, out=out, err=err)
+
 
 # ==================== PATCH: MOUNT-ONLY MODE ====================
 @contextmanager
@@ -454,7 +463,6 @@ def with_vhd_mounted(vhdx_candidates, drive_letter, read_only=False, wait_timeou
             emit("airgap_mount_all_failed", drive=drive_letter)
         yield owned
     finally:
-        # >>> HANYA UNMOUNT jika kita yang mount DAN tidak diminta leave_mounted
         if owned and mounted_vhdx_path and not leave_mounted:
             print(f"[VHD] UNMOUNT: {mounted_vhdx_path}")
             dismount_vhdx_and_cleanup(mounted_vhdx_path, drive_letter)
@@ -476,9 +484,6 @@ def main():
     evaluation_folder = os.path.join(base_folder, EVALUATION_FOLDER_NAME)
     default_local_airgap = os.path.join(base_folder, AIRGAP_FOLDER_NAME)
     simulated_attack_folder = os.path.join(base_folder, SIMULATED_ATTACK_FOLDER)
-    ##ensure_dir(output_folder)
-    ##ensure_dir(restore_folder)
-    ##ensure_dir(evaluation_folder)
 
     # Hash.json di air-gapped drive bila ada, else lokal (pakai deteksi PS)
     airgap_hash_folder = os.path.join(f"{AIRGAP_DRIVE_LETTER}:\\", AIRGAP_FOLDER_NAME)
@@ -595,7 +600,7 @@ def main():
                 transfer_to_airgap(output_folder, fallback)
             emit("transfer_done_fallback", dst=fallback)
 
-        # >>> Karena mount-only, JANGAN paksa unmount pre-mounted
+        # Mount-only → tidak memaksa unmount jika bukan kita yang mount
         # if not owned_mount and FORCE_UNMOUNT_AT_END and is_drive_mounted_ps(AIRGAP_DRIVE_LETTER):
         #     print(f"[VHD] Forcing unmount drive {AIRGAP_DRIVE_LETTER} (pre-mounted) ...", flush=True)
         #     force_unmount_airgap_by_drive(AIRGAP_DRIVE_LETTER)
@@ -620,41 +625,58 @@ def main():
         emit("upload_backup_error", error=repr(e))
         print(f"[GDRIVE] Upload gagal: {e}")
 
-
-    # === MODE RANSOMWARE ===
+    # === MODE SIMULASI ===
     if args.mode == "wannacry":
         simulated_extension = ".wncry"
 
-        # Emit total file kalau bisa dihitung
         total_files = sum(len(files) for _, _, files in os.walk(output_folder))
         emit("ransom_scan_start", total=total_files)
 
-        #mulai tahap enkripsi
         with stage("ransom_encrypt", ext=simulated_extension):
             encrypted_files = simulate_ransomware_safe(
                 source_folder=output_folder,
-                extension=simulated_extension
+                extension=simulated_extension,
+                reset=getattr(args, "reset", False),
+                reset_key=getattr(args, "reset_key", False),
             )
         emit("ransom_simulation_end", count=len(encrypted_files))
         print(f"[WANNA-CRY SIMULATION] {len(encrypted_files)} file terenkripsi di {output_folder} (ext {simulated_extension})")
 
-    # === MODE HEADER CORRUPTION ===
     elif args.mode == "headercorrupt":
-        with stage("simulate_header_corruption", header_size=64):
+    # hitung total file sebelum mulai
+        total_files = sum(len(files) for _, _, files in os.walk(output_folder))
+        emit("hdr_scan_start", total=total_files)
+
+        with stage("hdr_corrupt", header_size=64):
             results = simulate_header_corruption_safe(
                 source_folder=output_folder,
                 header_size=64,
                 extensions=None,
                 dry_run=False,
                 force=True,
-                report_file=os.path.join(base_folder, "header_report.json"),
-                show_progress=True
+                report_file=os.path.join("header_report.json"),
+                show_progress=True,
+                reset=getattr(args, "reset", False),
+                cleanup_snapshots=getattr(args, "cleanup_snapshots", False),
             )
-        emit("simulate_header_corruption_done", count=len(results))
-        print(f"[HEADER-CORRUPTION SIM] {len(results)} file diproses. Ringkasan tersimpan di header_report.json")
 
+    # ambil jumlah file yang berhasil dan gagal
+        count_ok = results.get("total_success", 0)
+        count_fail = results.get("total_fail", 0)
+        count_total = count_ok + count_fail
 
-   # === RESTORE dari Drive BackupResults ===
+    # kirim event selesai ke dashboard
+        emit("hdr_done", success=count_ok, fail=count_fail, total=count_total)
+        print(f"[HEADER-CORRUPTION SIM] {count_total} file diproses "
+          f"({count_ok} sukses, {count_fail} gagal). "
+          f"Ringkasan tersimpan di header_report.json"
+        )
+    
+    else:
+        # mode "normal": tidak ada simulasi
+      pass
+
+    # === RESTORE dari Drive BackupResults ===
     restore_cache = os.path.join(base_folder, "_restore_cache_drive")
     ensure_dir(restore_cache)
 
@@ -664,7 +686,7 @@ def main():
     def download_backup_folder():
         q = f"'{GDRIVE_BACKUP_FOLDER_ID}' in parents and trashed=false"
         page_token = None
-        drive_files_seen = set()   # >>> PATCH ORPHAN CHECK
+        drive_files_seen = set()   # PATCH ORPHAN CHECK
 
         while True:
             resp = gsvc.files().list(

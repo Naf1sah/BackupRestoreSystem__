@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-10-16T12:03:40.213785Z",
+  "mode": "corrupt",
+  "total_success": 44,
+  "total_fail": 0,
+  "output_folder": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results",
+  "entries_preview": [
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\Brotli\\A.csv.br",
+      "status": "ok"
+    },
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\Brotli\\A.csv.br.hash",
+      "status": "ok"
+    },
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\Brotli\\AAL.csv.br",
+      "status": "ok"
+    },
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\Brotli\\AAL.csv.br.hash",
+      "status": "ok"
+    },
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\Brotli\\ABT.csv.br",
+      "status": "ok"
+    },
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\Brotli\\ABT.csv.br.hash",
+      "status": "ok"
+    },
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\Brotli\\finance_log_10000.log.br",
+      "status": "ok"
+    },
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\Brotli\\finance_log_10000.log.br.hash",
+      "status": "ok"
+    },
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\GZIP\\A.csv.gz",
+      "status": "ok"
+    },
+    {
+      "file": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results\\GZIP\\A.csv.gz.hash",
+      "status": "ok"
+    },
+    {
+      "more": 34
+    }
+  ]
+}
