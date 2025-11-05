@@ -1,0 +1,390 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Mini Monitor (Interaktif)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root { --card:#fff; --border:#eee; --ink:#222; --muted:#666; --bg:#fafafa; }
+    html { font-size: 14px; }
+    body{font-family:system-ui, Arial, sans-serif; margin:16px; color:var(--ink); background:var(--bg);}
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1{margin:6px 0 12px; font-size:1.6rem;}
+    .grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:10px;}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px; box-shadow:0 1px 3px rgba(0,0,0,.05);}
+    .muted{color:var(--muted);}
+    table{width:100%; border-collapse:collapse; margin-top:6px; font-size:0.9rem;}
+    th,td{border-bottom:1px solid var(--border); padding:6px 8px; text-align:left;}
+    th{background:#f8f8f8;}
+    code{background:#f3f3f3; padding:1px 4px; border-radius:4px;}
+    .ok{color:#0a7; font-weight:600;}
+    .bad{color:#c33; font-weight:600;}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+    @media (max-width:900px){ .row{grid-template-columns: 1fr;} }
+    select{padding:6px 8px; border-radius:8px; border:1px solid var(--border); background:#fff;}
+    .hint{font-size:0.8rem; color:var(--muted);}
+    .chart-sm { height: 200px !important; max-height: 200px !important; }
+    .card canvas{ display:block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>DASHBOARD</h1>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Ringkasan</h3>
+        <div id="summary">memuat…</div>
+        <div class="hint">Auto refresh setiap 5 detik.</div>
+      </div>
+
+      <div class="card">
+        <h3>Simulasi Ransomware</h3>
+        <canvas id="ransomChart" class="chart-sm"></canvas>
+        <div id="ransomStat" class="muted" style="margin-top:6px;">memuat…</div>
+      </div>
+
+      <div class="card">
+        <h3>Pilih File</h3>
+        <select id="fileSel"></select>
+        <div id="fileMeta" class="muted" style="margin-top:6px;"></div>
+      </div>
+
+      <div class="card">
+        <h3>Ringkasan Validasi</h3>
+        <canvas id="restorePie" class="chart-sm"></canvas>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <div class="card">
+        <h3>Rasio Kompresi (hasil/asli)</h3>
+        <canvas id="ratioBar" class="chart-sm"></canvas>
+      </div>
+      <div class="card">
+        <h3>Waktu Kompresi (ms)</h3>
+        <canvas id="durBar" class="chart-sm"></canvas>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <div class="card">
+        <h3>File Baru</h3>
+        <div id="filesBox">memuat…</div>
+      </div>
+      <div class="card">
+        <h3>Status Restore</h3>
+        <div id="restoreBox">memuat…</div>
+      </div>
+    </div>
+  </div>
+
+<!-- JAVASCRIPT -->
+<script>
+let state = null;
+let ratioChart, durChart, pieChart;
+let ransomChart;
+
+function fmtMB(b){ return (b/1024/1024).toFixed(2)+' MB'; }
+
+function renderSummary(g){
+  const el = document.getElementById('summary');
+  el.innerHTML = `
+    <b>Total file:</b> ${g.total_files} &nbsp; | &nbsp;
+    <b>Backup pairs:</b> ${g.total_backup_pairs} &nbsp; | &nbsp;
+    <b>Restore OK:</b> ${g.total_restore_ok}/${g.total_restore} &nbsp; | &nbsp;
+    <b>Error:</b> ${g.errors}
+  `;
+}
+
+function fillFileSelector(files){
+  const sel = document.getElementById('fileSel');
+  const current = Array.from(sel.options).map(o=>o.value).join('|');
+  const incoming = files.map(f=>f.file).join('|');
+  if(current === incoming) return;
+
+  sel.innerHTML = '';
+  if(files.length === 0){
+    const opt = document.createElement('option');
+    opt.textContent = 'Belum ada file';
+    sel.appendChild(opt);
+    return;
+  }
+  for(const f of files){
+    const o = document.createElement('option');
+    o.value = f.file;
+    o.textContent = f.file;
+    sel.appendChild(o);
+  }
+}
+
+function renderFileMeta(f){
+  const m = document.getElementById('fileMeta');
+  if(!f){ m.textContent=''; return; }
+  m.innerHTML = `<b>Ukuran:</b> ${fmtMB(f.size)} &nbsp; | &nbsp; <b>SHA256</b> <code>${(f.sha||'').slice(0,16)}…</code>`;
+}
+
+function ensureCharts(){
+  const commonOpts = {
+    responsive:true,
+    maintainAspectRatio:false,
+    animation:false,
+    resizeDelay:0,
+    plugins:{ legend:{ display:false } },
+    scales:{
+      x:{ ticks:{ autoSkip:true, maxRotation:0 } },
+      y:{ beginAtZero:true }
+    }
+  };
+
+  if(!ratioChart){
+    ratioChart = new Chart(document.getElementById('ratioBar'), {
+      type:'bar',
+      data:{labels:[], datasets:[{label:'ratio', data:[]}]},
+      options:{ ...commonOpts, scales:{ x: commonOpts.scales.x, y:{ beginAtZero:true, suggestedMax:1 } } }
+    });
+  }
+  if(!durChart){
+    durChart = new Chart(document.getElementById('durBar'), {
+      type:'bar',
+      data:{labels:[], datasets:[{label:'duration_ms', data:[]}]},
+      options: commonOpts
+    });
+  }
+  if(!pieChart){
+    pieChart = new Chart(document.getElementById('restorePie'), {
+      type:'doughnut',
+      data:{labels:['OK','FAIL'], datasets:[{data:[0,0]}]},
+      options: { ...commonOpts }
+    });
+  }
+}
+
+function renderChartsForFile(f){
+  ensureCharts();
+  if(!f){
+    ratioChart.data.labels = [];
+    ratioChart.data.datasets[0].data = [];
+    ratioChart.update();
+
+    durChart.data.labels = [];
+    durChart.data.datasets[0].data = [];
+    durChart.update();
+
+    pieChart.data.datasets[0].data = [0,0];
+    pieChart.update();
+    return;
+  }
+
+  const labels = f.algos || [];
+  const ratios = labels.map(a => f.ratios[a] ?? null);
+  const durs   = labels.map(a => f.durations[a] ?? null);
+
+  ratioChart.data.labels = labels;
+  ratioChart.data.datasets[0].data = ratios;
+  ratioChart.update();
+
+  durChart.data.labels = labels;
+  durChart.data.datasets[0].data = durs;
+  durChart.update();
+
+  const ok = f.restore_ok || 0;
+  const tot = f.restore_total || 0;
+  pieChart.data.datasets[0].data = [ok, Math.max(0, tot-ok)];
+  pieChart.update();
+}
+
+function renderFilesTable(files){
+  const box = document.getElementById('filesBox');
+  if(files.length===0){ box.textContent = 'Belum ada.'; return; }
+  let html = '<table><tr><th>File</th><th>Ukuran</th><th>SHA256</th></tr>';
+  for(const f of files){
+    html += `<tr><td>${f.file}</td><td>${fmtMB(f.size)}</td><td><code>${(f.sha||'').slice(0,16)}…</code></td></tr>`;
+  }
+  html += '</table>';
+  box.innerHTML = html;
+}
+
+function renderRestoreTable(files){
+  const box = document.getElementById('restoreBox');
+  const rows = [];
+  for(const f of files){
+    for(const r of (f.restore||[])){
+      rows.push(`<tr>
+        <td>${f.file}</td>
+        <td>${r.algo||'-'}</td>
+        <td class="${r.ok?'ok':'bad'}">${r.ok?'OK':'FAIL'}</td>
+      </tr>`);
+    }
+  }
+  if(rows.length===0){ box.textContent = 'Belum ada.'; return; }
+  box.innerHTML = `<table><tr><th>File</th><th>Algo</th><th>OK?</th></tr>${rows.join('')}</table>`;
+}
+
+async function refreshRansom() {
+  const ransomRes = await fetch('/api/ransom_status');
+  const ransomData = await ransomRes.json();
+   console.log("📌 Ransom Status Data:", ransomData); 
+
+  const headerRes = await fetch('/api/header_status');
+  const headerData = await headerRes.json();
+
+  const corruptRes = await fetch('/api/corrupt_status');
+  const corruptData = await corruptRes.json();
+  //console.log("🧩 corruptData:", corruptData);
+
+  const el = document.getElementById('ransomStat');
+  const chartCanvas = document.getElementById('ransomChart');
+
+  const isHeaderMode = (headerData.total_success + headerData.total_fail) > 0;
+  const isCorruptMode = (corruptData.total_success || 0) + (corruptData.total_fail || 0) > 0;
+
+  if (ransomChart) { ransomChart.destroy(); ransomChart = null; }
+
+  if (isHeaderMode) {
+    el.innerHTML = `
+      <b>Mode:</b> Header Corruption |
+      <b>Status:</b> ${headerData.status} |
+      <b>Berhasil:</b> ${headerData.total_success} |
+      <b>Gagal:</b> ${headerData.total_fail}
+    `;
+    ransomChart = new Chart(chartCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Success', 'Fail'],
+        datasets: [{ data: [headerData.total_success, headerData.total_fail], backgroundColor: ['#4CAF50', '#F44336'] }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+  } else if (isCorruptMode) {
+    el.innerHTML = `
+      <b>Mode:</b> File Corruption |
+      <b>Status:</b> ${corruptData.status} |
+      <b>Berhasil:</b> ${corruptData.total_success || 0} |
+      <b>Gagal:</b> ${corruptData.total_fail || 0}
+    `;
+
+    if (ransomChart) {
+    ransomChart.destroy();
+    ransomChart = null;
+  }
+  
+    ransomChart = new Chart(chartCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Success', 'Fail'],
+        datasets: [{ data: [corruptData.total_success || 0, corruptData.total_fail || 0], backgroundColor: ['#4CAF50', '#E91E63'] }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+  } else {
+   if (ransomData.total === 0 &&
+    ransomData.encrypted === 0 &&
+    ransomData.decrypted === 0) {
+  el.textContent = "Belum ada aktivitas ransomware.";
+  return;
+}
+
+    el.innerHTML = `
+      <b>Mode:</b> Ransomware |
+      <b>Total File:</b> ${ransomData.total} |
+      <b>Terenkripsi:</b> ${ransomData.encrypted} |
+      <b>Didekripsi:</b> ${ransomData.decrypted} |
+      <b>Status:</b> ${ransomData.running
+        ? '<span class="bad">Berjalan</span>'
+        : '<span class="ok">Selesai</span>'}
+    `;
+    ransomChart = new Chart(chartCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Encrypted', 'Decrypted', 'Remaining'],
+        datasets: [{
+          data: [
+            ransomData.encrypted,
+            ransomData.decrypted,
+            Math.max(0, ransomData.total - ransomData.encrypted - ransomData.decrypted)
+          ],
+          backgroundColor: ['#FFC107', '#8BC34A', '#9E9E9E']
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  }
+}
+
+async function refresh() {
+  const prevY = window.scrollY;
+
+  const r = await fetch('/api/summary');
+  state = await r.json();
+
+  renderSummary(state.global);
+  fillFileSelector(state.files);
+
+  const sel = document.getElementById('fileSel');
+  const f = state.files.find(x=> x.file === sel.value) || state.files[0];
+  if(f){ sel.value = f.file; }
+  renderFileMeta(f);
+  renderChartsForFile(f);
+  renderFilesTable(state.files);
+  renderRestoreTable(state.files);
+
+  window.scrollTo({ top: prevY, left: 0, behavior: 'instant' });
+}
+
+// Listener dropdown file
+document.addEventListener('change', (ev) => {
+  if (ev.target && ev.target.id === 'fileSel' && state) {
+    const f = state.files.find(x => x.file === ev.target.value);
+    renderFileMeta(f);
+    renderChartsForFile(f);
+  }
+});
+
+// Auto-refresh
+refresh();
+refreshRansom();
+setInterval(refresh, 5000);
+setInterval(refreshRansom, 3000);
+
+// === CEK NOTIFIKASI RANSOMWARE BARU ===
+let lastRansomAlertShown = null;
+
+async function checkRansomAlert() {
+  try {
+    const res = await fetch('/api/ransom_alert');
+    const data = await res.json();
+
+    if (data.latest) {
+      const latest = data.latest;
+      // tampilkan hanya kalau belum pernah muncul
+      if (lastRansomAlertShown !== latest.timestamp) {
+        Swal.fire({
+          icon: 'error',
+          title: '⚠️ Ransomware Terdeteksi!',
+          html: `
+            <b>File:</b> ${latest.file_path}<br>
+            <b>Status:</b> ${latest.status}<br>
+            <b>Waktu:</b> ${latest.timestamp}
+          `,
+          confirmButtonColor: '#d33',
+          confirmButtonText: 'OK'
+        });
+        lastRansomAlertShown = latest.timestamp;
+      }
+    }
+  } catch (err) {
+    console.error("Gagal ambil alert ransomware:", err);
+  }
+}
+
+// Jalankan pengecekan tiap 10 detik
+setInterval(checkRansomAlert, 10000);
+
+</script>
+</body>
+</html>

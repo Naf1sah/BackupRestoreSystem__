@@ -97,7 +97,9 @@ def show_all_hash_popup(hash_results, save_folder=None):
     """
     hash_results: list of (file_rel_with_algo_folder, algo_display, original_hash, restored_hash, match_bool)
     """
-    fig, ax = plt.subplots(figsize=(12, 4))
+    n_rows = len(hash_results) + 1
+    fig_height = max(4, min(40, 0.35 * n_rows))
+    fig, ax = plt.subplots(figsize=(12, fig_height))
     ax.axis('off')
     ax.set_title("Hasil Perbandingan Hash Semua File", fontsize=14, fontweight='bold')
     columns = ["File", "Algoritma", "Hash Asli", "Hash Restore", "Status"]
@@ -107,8 +109,12 @@ def show_all_hash_popup(hash_results, save_folder=None):
 
     table = ax.table(cellText=table_data, loc='center', cellLoc='center')
     table.auto_set_font_size(False)
-    table.set_fontsize(9); table.scale(1.2, 1.5)
-    for j in range(len(columns)): table[(0, j)].set_facecolor("#cccccc")
+    font_size = max(6, min(10, int(150 / max(10, n_rows))))
+    table.set_fontsize(font_size)
+    table.scale(1.2, 1.0 + n_rows * 0.02)
+
+    for j in range(len(columns)): 
+        table[(0, j)].set_facecolor("#cccccc")
     for i in range(1, len(table_data)):
         table[(i, 4)].set_facecolor("#c8e6c9" if "Cocok" in table_data[i][4] else "#ffcdd2")
 

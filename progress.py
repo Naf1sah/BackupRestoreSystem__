@@ -3,6 +3,21 @@ import os, json, time, pathlib, threading, io
 LOG_PATH = pathlib.Path(os.getenv("PROGRESS_LOG_PATH", "progress_events.jsonl")).resolve()
 LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
+archive_dir = LOG_PATH.parent / "logs"
+archive_dir.mkdir(exist_ok=True)
+
+# --- Arsip log lama ---
+if LOG_PATH.exists():
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    archived = archive_dir / f"progress_events_{timestamp}.jsonl"
+    LOG_PATH.rename(archived)
+
+    # hapus file arsip lama jika lebih dari 5
+    logs = sorted(archive_dir.glob("progress_events_*.jsonl"), key=os.path.getmtime)
+    while len(logs) > 5:
+        logs[0].unlink()
+        logs.pop(0)
+
 _lock = threading.Lock()
 
 def _append_line(line: str):

@@ -1,0 +1,146 @@
+{"ts": 1761989615.4917717, "event": "ransom_reset", "data": {}}
+{"ts": 1761989615.4990416, "event": "header_reset", "data": {}}
+{"ts": 1761989615.5059679, "event": "pipeline_start", "data": {}}
+{"ts": 1761989618.9478567, "event": "hash_location_airgap", "data": {"path": "G:\\airgapped_storage\\hash_storage.json"}}
+{"ts": 1761989618.970276, "event": "workspace_prepared", "data": {"source_folder": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\source_data", "output_folder": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results", "restore_folder": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\restore_results", "evaluation_folder": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\evaluation"}}
+{"ts": 1761989618.9757905, "event": "hash_loaded", "data": {"entries": 8}}
+{"ts": 1761989618.9787338, "event": "drive_auth_start", "data": {}}
+{"ts": 1761989619.5109375, "event": "drive_auth_end", "data": {"duration_ms": 532, "ok": true}}
+{"ts": 1761989619.515283, "event": "drive_auth_ok", "data": {}}
+{"ts": 1761989619.5198357, "event": "drive_enumerate_start", "data": {}}
+{"ts": 1761989620.6388574, "event": "drive_enumerate_end", "data": {"duration_ms": 1119, "ok": true}}
+{"ts": 1761989620.6433055, "event": "drive_enumerated", "data": {"count": 7}}
+{"ts": 1761989620.6479485, "event": "ransom_file_detected", "data": {"file": "A.csv.wncry"}}
+{"ts": 1761989620.6542976, "event": "auto_restore_triggered", "data": {"file": "A.csv.wncry", "restore_path": "restore_results\\A.csv.wncry"}}
+{"ts": 1761989620.659102, "event": "download_file_start", "data": {"file": "AED5_back_0.png"}}
+{"ts": 1761989621.9488199, "event": "download_file_end", "data": {"file": "AED5_back_0.png", "duration_ms": 1289, "ok": true}}
+{"ts": 1761989621.9617968, "event": "hash_original", "data": {"file": "AED5_back_0.png", "sha256": "9557236cbaca14e85099cff4daf8637fb5636fe109453a0bced564ba4a9d57cd", "size": 311924}}
+{"ts": 1761989621.9655337, "event": "backup_file_start", "data": {"file": "AED5_back_0.png", "algo": "lz4"}}
+{"ts": 1761989622.0026383, "event": "backup_file_end", "data": {"file": "AED5_back_0.png", "algo": "lz4", "duration_ms": 37, "ok": true}}
+{"ts": 1761989622.0062647, "event": "backup_result", "data": {"file": "AED5_back_0.png", "algo": "lz4", "size_in": 311924, "size_out": 311955, "ratio": 1.0000993831830831, "duration_ms": 0.0256197452545166}}
+{"ts": 1761989622.0097406, "event": "backup_file_start", "data": {"file": "AED5_back_0.png", "algo": "zstd"}}
+{"ts": 1761989622.0268013, "event": "backup_file_end", "data": {"file": "AED5_back_0.png", "algo": "zstd", "duration_ms": 17, "ok": true}}
+{"ts": 1761989622.0299873, "event": "backup_result", "data": {"file": "AED5_back_0.png", "algo": "zstd", "size_in": 311924, "size_out": 309612, "ratio": 0.9925879380874828, "duration_ms": 0.008288145065307617}}
+{"ts": 1761989622.0332785, "event": "backup_file_start", "data": {"file": "AED5_back_0.png", "algo": "gzip"}}
+{"ts": 1761989622.063872, "event": "backup_file_end", "data": {"file": "AED5_back_0.png", "algo": "gzip", "duration_ms": 30, "ok": true}}
+{"ts": 1761989622.0673547, "event": "backup_result", "data": {"file": "AED5_back_0.png", "algo": "gzip", "size_in": 311924, "size_out": 305668, "ratio": 0.9799438324720124, "duration_ms": 0.022591114044189453}}
+{"ts": 1761989622.0704336, "event": "backup_file_start", "data": {"file": "AED5_back_0.png", "algo": "brotli"}}
+{"ts": 1761989623.112659, "event": "backup_file_end", "data": {"file": "AED5_back_0.png", "algo": "brotli", "duration_ms": 1042, "ok": true}}
+{"ts": 1761989623.1580021, "event": "backup_result", "data": {"file": "AED5_back_0.png", "algo": "brotli", "size_in": 311924, "size_out": 298758, "ratio": 0.9577910003718855, "duration_ms": 1.0358474254608154}}
+{"ts": 1761989623.161004, "event": "backup_file_start", "data": {"file": "AED5_back_0.png", "algo": "snappy"}}
+{"ts": 1761989623.1741064, "event": "backup_file_end", "data": {"file": "AED5_back_0.png", "algo": "snappy", "duration_ms": 13, "ok": true}}
+{"ts": 1761989623.1789098, "event": "backup_result", "data": {"file": "AED5_back_0.png", "algo": "snappy", "size_in": 311924, "size_out": 311942, "ratio": 1.0000577063643707, "duration_ms": 0.005201816558837891}}
+{"ts": 1761989623.818964, "event": "perfile_plot_saved", "data": {"file": "AED5_back_0.png"}}
+{"ts": 1761989623.8248858, "event": "download_file_start", "data": {"file": "t10k-labels-idx1-ubyte"}}
+{"ts": 1761989624.8078449, "event": "download_file_end", "data": {"file": "t10k-labels-idx1-ubyte", "duration_ms": 982, "ok": true}}
+{"ts": 1761989624.84422, "event": "hash_original", "data": {"file": "t10k-labels-idx1-ubyte", "sha256": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34", "size": 10008}}
+{"ts": 1761989624.848009, "event": "backup_file_start", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "lz4"}}
+{"ts": 1761989624.8686504, "event": "backup_file_end", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "lz4", "duration_ms": 20, "ok": true}}
+{"ts": 1761989624.872406, "event": "backup_result", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "lz4", "size_in": 10008, "size_out": 9940, "ratio": 0.9932054356514788, "duration_ms": 0.012967109680175781}}
+{"ts": 1761989624.8762236, "event": "backup_file_start", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "zstd"}}
+{"ts": 1761989624.8919706, "event": "backup_file_end", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "zstd", "duration_ms": 15, "ok": true}}
+{"ts": 1761989624.8951652, "event": "backup_result", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "zstd", "size_in": 10008, "size_out": 4516, "ratio": 0.45123900879296563, "duration_ms": 0.00721430778503418}}
+{"ts": 1761989624.898689, "event": "backup_file_start", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "gzip"}}
+{"ts": 1761989624.9080534, "event": "backup_file_end", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "gzip", "duration_ms": 9, "ok": true}}
+{"ts": 1761989624.9110744, "event": "backup_result", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "gzip", "size_in": 10008, "size_out": 5148, "ratio": 0.5143884892086331, "duration_ms": 0.003930091857910156}}
+{"ts": 1761989624.9139793, "event": "backup_file_start", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "brotli"}}
+{"ts": 1761989624.9328759, "event": "backup_file_end", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "brotli", "duration_ms": 18, "ok": true}}
+{"ts": 1761989624.9359167, "event": "backup_result", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "brotli", "size_in": 10008, "size_out": 4399, "ratio": 0.43954836131095126, "duration_ms": 0.013148307800292969}}
+{"ts": 1761989624.939515, "event": "backup_file_start", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "snappy"}}
+{"ts": 1761989624.951516, "event": "backup_file_end", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "snappy", "duration_ms": 11, "ok": true}}
+{"ts": 1761989624.95455, "event": "backup_result", "data": {"file": "t10k-labels-idx1-ubyte", "algo": "snappy", "size_in": 10008, "size_out": 9241, "ratio": 0.923361310951239, "duration_ms": 0.0056972503662109375}}
+{"ts": 1761989625.3089774, "event": "perfile_plot_saved", "data": {"file": "t10k-labels-idx1-ubyte"}}
+{"ts": 1761989625.313593, "event": "download_file_start", "data": {"file": "finance_log_10000.log"}}
+{"ts": 1761989630.4742343, "event": "download_file_end", "data": {"file": "finance_log_10000.log", "duration_ms": 5160, "ok": true}}
+{"ts": 1761989630.4907076, "event": "hash_original", "data": {"file": "finance_log_10000.log", "sha256": "da27eefb31d6aa6ad4507446a11fc174ab7b887bd91090c9dc28310412ea8b6a", "size": 1386252}}
+{"ts": 1761989630.4943178, "event": "backup_file_start", "data": {"file": "finance_log_10000.log", "algo": "lz4"}}
+{"ts": 1761989630.5327992, "event": "backup_file_end", "data": {"file": "finance_log_10000.log", "algo": "lz4", "duration_ms": 38, "ok": true}}
+{"ts": 1761989630.5380638, "event": "backup_result", "data": {"file": "finance_log_10000.log", "algo": "lz4", "size_in": 1386252, "size_out": 772607, "ratio": 0.5573351742684591, "duration_ms": 0.026487350463867188}}
+{"ts": 1761989630.5426457, "event": "backup_file_start", "data": {"file": "finance_log_10000.log", "algo": "zstd"}}
+{"ts": 1761989630.6168506, "event": "backup_file_end", "data": {"file": "finance_log_10000.log", "algo": "zstd", "duration_ms": 74, "ok": true}}
+{"ts": 1761989630.6210725, "event": "backup_result", "data": {"file": "finance_log_10000.log", "algo": "zstd", "size_in": 1386252, "size_out": 471416, "ratio": 0.34006515409896615, "duration_ms": 0.06067204475402832}}
+{"ts": 1761989630.6251636, "event": "backup_file_start", "data": {"file": "finance_log_10000.log", "algo": "gzip"}}
+{"ts": 1761989631.1094115, "event": "backup_file_end", "data": {"file": "finance_log_10000.log", "algo": "gzip", "duration_ms": 484, "ok": true}}
+{"ts": 1761989631.1165755, "event": "backup_result", "data": {"file": "finance_log_10000.log", "algo": "gzip", "size_in": 1386252, "size_out": 472451, "ratio": 0.34081177159708337, "duration_ms": 0.4715282917022705}}
+{"ts": 1761989631.121412, "event": "backup_file_start", "data": {"file": "finance_log_10000.log", "algo": "brotli"}}
+{"ts": 1761989640.3121583, "event": "backup_file_end", "data": {"file": "finance_log_10000.log", "algo": "brotli", "duration_ms": 9190, "ok": true}}
+{"ts": 1761989640.3172467, "event": "backup_result", "data": {"file": "finance_log_10000.log", "algo": "brotli", "size_in": 1386252, "size_out": 371292, "ratio": 0.2678387479332762, "duration_ms": 9.169990539550781}}
+{"ts": 1761989640.3209646, "event": "backup_file_start", "data": {"file": "finance_log_10000.log", "algo": "snappy"}}
+{"ts": 1761989640.364196, "event": "backup_file_end", "data": {"file": "finance_log_10000.log", "algo": "snappy", "duration_ms": 43, "ok": true}}
+{"ts": 1761989640.3680224, "event": "backup_result", "data": {"file": "finance_log_10000.log", "algo": "snappy", "size_in": 1386252, "size_out": 775219, "ratio": 0.5592193915680554, "duration_ms": 0.028909921646118164}}
+{"ts": 1761989640.89722, "event": "perfile_plot_saved", "data": {"file": "finance_log_10000.log"}}
+{"ts": 1761989640.9016082, "event": "download_file_start", "data": {"file": "ABT.csv"}}
+{"ts": 1761989643.1009884, "event": "download_file_end", "data": {"file": "ABT.csv", "duration_ms": 2199, "ok": true}}
+{"ts": 1761989643.1396103, "event": "hash_original", "data": {"file": "ABT.csv", "sha256": "8c07f6b52b80119f9fe29d316784f23bdac154b4b1e6a53e1a4c77f4b562b243", "size": 1268106}}
+{"ts": 1761989643.1429186, "event": "backup_file_start", "data": {"file": "ABT.csv", "algo": "lz4"}}
+{"ts": 1761989643.2124934, "event": "backup_file_end", "data": {"file": "ABT.csv", "algo": "lz4", "duration_ms": 69, "ok": true}}
+{"ts": 1761989643.2164752, "event": "backup_result", "data": {"file": "ABT.csv", "algo": "lz4", "size_in": 1268106, "size_out": 724027, "ratio": 0.5709514819739044, "duration_ms": 0.037271738052368164}}
+{"ts": 1761989643.219166, "event": "backup_file_start", "data": {"file": "ABT.csv", "algo": "zstd"}}
+{"ts": 1761989643.2613266, "event": "backup_file_end", "data": {"file": "ABT.csv", "algo": "zstd", "duration_ms": 42, "ok": true}}
+{"ts": 1761989643.2651095, "event": "backup_result", "data": {"file": "ABT.csv", "algo": "zstd", "size_in": 1268106, "size_out": 426318, "ratio": 0.3361848299747813, "duration_ms": 0.032892465591430664}}
+{"ts": 1761989643.2695434, "event": "backup_file_start", "data": {"file": "ABT.csv", "algo": "gzip"}}
+{"ts": 1761989643.5854306, "event": "backup_file_end", "data": {"file": "ABT.csv", "algo": "gzip", "duration_ms": 315, "ok": true}}
+{"ts": 1761989643.5891182, "event": "backup_result", "data": {"file": "ABT.csv", "algo": "gzip", "size_in": 1268106, "size_out": 407696, "ratio": 0.32149993770236873, "duration_ms": 0.3040645122528076}}
+{"ts": 1761989643.5960283, "event": "backup_file_start", "data": {"file": "ABT.csv", "algo": "brotli"}}
+{"ts": 1761989648.0860748, "event": "backup_file_end", "data": {"file": "ABT.csv", "algo": "brotli", "duration_ms": 4490, "ok": true}}
+{"ts": 1761989648.1203315, "event": "backup_result", "data": {"file": "ABT.csv", "algo": "brotli", "size_in": 1268106, "size_out": 333657, "ratio": 0.26311443996006645, "duration_ms": 4.480339527130127}}
+{"ts": 1761989648.1274714, "event": "backup_file_start", "data": {"file": "ABT.csv", "algo": "snappy"}}
+{"ts": 1761989648.1488533, "event": "backup_file_end", "data": {"file": "ABT.csv", "algo": "snappy", "duration_ms": 21, "ok": true}}
+{"ts": 1761989648.151882, "event": "backup_result", "data": {"file": "ABT.csv", "algo": "snappy", "size_in": 1268106, "size_out": 691576, "ratio": 0.5453613499186977, "duration_ms": 0.012823343276977539}}
+{"ts": 1761989648.5717447, "event": "perfile_plot_saved", "data": {"file": "ABT.csv"}}
+{"ts": 1761989648.5756433, "event": "download_file_start", "data": {"file": "AAL.csv"}}
+{"ts": 1761989649.7886243, "event": "download_file_end", "data": {"file": "AAL.csv", "duration_ms": 1212, "ok": true}}
+{"ts": 1761989649.8061104, "event": "hash_original", "data": {"file": "AAL.csv", "sha256": "0bdbe58127ee7ad9e179bda144800e9af800565b5415cf9e51fb73ad55f7760f", "size": 522031}}
+{"ts": 1761989649.8100255, "event": "backup_file_start", "data": {"file": "AAL.csv", "algo": "lz4"}}
+{"ts": 1761989649.8351555, "event": "backup_file_end", "data": {"file": "AAL.csv", "algo": "lz4", "duration_ms": 25, "ok": true}}
+{"ts": 1761989649.8391414, "event": "backup_result", "data": {"file": "AAL.csv", "algo": "lz4", "size_in": 522031, "size_out": 288845, "ratio": 0.5533100524681485, "duration_ms": 0.015105724334716797}}
+{"ts": 1761989649.8422751, "event": "backup_file_start", "data": {"file": "AAL.csv", "algo": "zstd"}}
+{"ts": 1761989649.8658628, "event": "backup_file_end", "data": {"file": "AAL.csv", "algo": "zstd", "duration_ms": 23, "ok": true}}
+{"ts": 1761989649.8694227, "event": "backup_result", "data": {"file": "AAL.csv", "algo": "zstd", "size_in": 522031, "size_out": 164707, "ratio": 0.3155119140434189, "duration_ms": 0.015473127365112305}}
+{"ts": 1761989649.87288, "event": "backup_file_start", "data": {"file": "AAL.csv", "algo": "gzip"}}
+{"ts": 1761989649.945191, "event": "backup_file_end", "data": {"file": "AAL.csv", "algo": "gzip", "duration_ms": 72, "ok": true}}
+{"ts": 1761989649.9485881, "event": "backup_result", "data": {"file": "AAL.csv", "algo": "gzip", "size_in": 522031, "size_out": 161306, "ratio": 0.3089969752754147, "duration_ms": 0.06601381301879883}}
+{"ts": 1761989649.9521801, "event": "backup_file_start", "data": {"file": "AAL.csv", "algo": "brotli"}}
+{"ts": 1761989651.6047108, "event": "backup_file_end", "data": {"file": "AAL.csv", "algo": "brotli", "duration_ms": 1652, "ok": true}}
+{"ts": 1761989651.6514843, "event": "backup_result", "data": {"file": "AAL.csv", "algo": "brotli", "size_in": 522031, "size_out": 133395, "ratio": 0.25553080181062043, "duration_ms": 1.6447949409484863}}
+{"ts": 1761989651.6551044, "event": "backup_file_start", "data": {"file": "AAL.csv", "algo": "snappy"}}
+{"ts": 1761989651.6734736, "event": "backup_file_end", "data": {"file": "AAL.csv", "algo": "snappy", "duration_ms": 18, "ok": true}}
+{"ts": 1761989651.676882, "event": "backup_result", "data": {"file": "AAL.csv", "algo": "snappy", "size_in": 522031, "size_out": 278762, "ratio": 0.53399510757024, "duration_ms": 0.011907815933227539}}
+{"ts": 1761989652.213181, "event": "perfile_plot_saved", "data": {"file": "AAL.csv"}}
+{"ts": 1761989652.2178216, "event": "download_file_start", "data": {"file": "A.csv"}}
+{"ts": 1761989654.4982862, "event": "download_file_end", "data": {"file": "A.csv", "duration_ms": 2280, "ok": true}}
+{"ts": 1761989654.5191867, "event": "hash_original", "data": {"file": "A.csv", "sha256": "b915a0750ddd17c3536ea1b0344c2edc14b9d9f496082ef37caad2bd26877a7a", "size": 694214}}
+{"ts": 1761989654.5225737, "event": "backup_file_start", "data": {"file": "A.csv", "algo": "lz4"}}
+{"ts": 1761989654.539369, "event": "backup_file_end", "data": {"file": "A.csv", "algo": "lz4", "duration_ms": 16, "ok": true}}
+{"ts": 1761989654.5425653, "event": "backup_result", "data": {"file": "A.csv", "algo": "lz4", "size_in": 694214, "size_out": 435935, "ratio": 0.6279547805143659, "duration_ms": 0.009790420532226562}}
+{"ts": 1761989654.5454504, "event": "backup_file_start", "data": {"file": "A.csv", "algo": "zstd"}}
+{"ts": 1761989654.5632093, "event": "backup_file_end", "data": {"file": "A.csv", "algo": "zstd", "duration_ms": 17, "ok": true}}
+{"ts": 1761989654.5664704, "event": "backup_result", "data": {"file": "A.csv", "algo": "zstd", "size_in": 694214, "size_out": 248302, "ratio": 0.3576735703976007, "duration_ms": 0.011705875396728516}}
+{"ts": 1761989654.569466, "event": "backup_file_start", "data": {"file": "A.csv", "algo": "gzip"}}
+{"ts": 1761989654.649049, "event": "backup_file_end", "data": {"file": "A.csv", "algo": "gzip", "duration_ms": 79, "ok": true}}
+{"ts": 1761989654.652446, "event": "backup_result", "data": {"file": "A.csv", "algo": "gzip", "size_in": 694214, "size_out": 243450, "ratio": 0.3506843711017064, "duration_ms": 0.0736382007598877}}
+{"ts": 1761989654.655666, "event": "backup_file_start", "data": {"file": "A.csv", "algo": "brotli"}}
+{"ts": 1761989657.1861472, "event": "backup_file_end", "data": {"file": "A.csv", "algo": "brotli", "duration_ms": 2530, "ok": true}}
+{"ts": 1761989657.2171817, "event": "backup_result", "data": {"file": "A.csv", "algo": "brotli", "size_in": 694214, "size_out": 199752, "ratio": 0.28773836309841055, "duration_ms": 2.5230417251586914}}
+{"ts": 1761989657.2210495, "event": "backup_file_start", "data": {"file": "A.csv", "algo": "snappy"}}
+{"ts": 1761989657.242293, "event": "backup_file_end", "data": {"file": "A.csv", "algo": "snappy", "duration_ms": 21, "ok": true}}
+{"ts": 1761989657.2460556, "event": "backup_result", "data": {"file": "A.csv", "algo": "snappy", "size_in": 694214, "size_out": 416181, "ratio": 0.5994995779399436, "duration_ms": 0.012715339660644531}}
+{"ts": 1761989657.8148806, "event": "perfile_plot_saved", "data": {"file": "A.csv"}}
+{"ts": 1761989669.9883265, "event": "airgap_reset_done", "data": {"stdout": "=== RESET & MOUNT AIRGAP STORAGE ===\nTarget VHDX : D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\AirgaStorage.vhdx\nDrive Letter: G\n[OK] PowerShell dijalankan sebagai Administrator.\n[OK] Hyper-V sudah aktif.\n-> Cabut drive letter G...\n   Tidak ada drive letter G aktif.\n-> Dismount VHDX lama...\n-> Mount ulang VHDX...\n-> Assign drive letter G\n=== READY: G sudah terpasang ===", "stderr": "Set-Partition : The requested access path is already in use.\nActivity ID: {8646b644-48c8-0001-30c5-fc86c848dc01}\nAt D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\reset-airgap.ps1:67 char:5\n+     Set-Partition -DiskNumber $disk.Number -PartitionNumber $part.Par ...\n+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    + CategoryInfo          : InvalidArgument: (StorageWMI:ROOT/Microsoft/..._StorageCmdlets) [Set-Partition], CimException\n    + FullyQualifiedErrorId : StorageWMI 42002,Set-Partition"}}
+{"ts": 1761989672.62397, "event": "airgap_pre_mounted", "data": {"drive": "G"}}
+{"ts": 1761989675.2030818, "event": "transfer_to_airgap_start", "data": {"dst": "G:\\airgapped_storage"}}
+{"ts": 1761989675.307982, "event": "transfer_to_airgap_end", "data": {"dst": "G:\\airgapped_storage", "duration_ms": 104, "ok": true}}
+{"ts": 1761989675.3114493, "event": "transfer_done", "data": {"dst": "G:\\airgapped_storage"}}
+{"ts": 1761989675.3176796, "event": "upload_backup_start", "data": {}}
+{"ts": 1761989675.746035, "event": "gdrive_upload_skip_identical", "data": {"file": "A.csv.br", "file_id": "11Zs3vmzZqe7EnsBsbgT0lOU3at4B8ko7"}}
+{"ts": 1761989676.328045, "event": "gdrive_upload_skip_identical", "data": {"file": "A.csv.br.hash", "file_id": "1Gp3wyeWRVzX6vUw_vuAb_BpiGlBruYAT"}}
+{"ts": 1761989676.8307135, "event": "gdrive_upload_skip_identical", "data": {"file": "AAL.csv.br", "file_id": "1c1NavS9SjL8dYmXvY0TM5eN5Q5aFLtCR"}}
+{"ts": 1761989677.3093328, "event": "gdrive_upload_skip_identical", "data": {"file": "AAL.csv.br.hash", "file_id": "1eQKIz8TEVMJaxrgHu70To8U6vkpC2Her"}}
+{"ts": 1761989677.7641823, "event": "gdrive_upload_skip_identical", "data": {"file": "ABT.csv.br", "file_id": "1WheGDvOiBHapJ-6XQF27Ode5qHy0nTWx"}}
+{"ts": 1761989678.2624197, "event": "gdrive_upload_skip_identical", "data": {"file": "ABT.csv.br.hash", "file_id": "1LNWjhDWDmamS_lU3FnC6ezItw0iN63Uu"}}
+{"ts": 1761989678.7478886, "event": "gdrive_upload_skip_identical", "data": {"file": "AED5_back_0.png.br", "file_id": "1T5T6-ykOV_SbTL2Yt-nwuEUFHwRScH6g"}}
+{"ts": 1761989679.2388487, "event": "gdrive_upload_skip_identical", "data": {"file": "AED5_back_0.png.br.hash", "file_id": "1rQR6m2NZEIu5L1ZSItcM52llSoFj6YF4"}}
+{"ts": 1761989679.7830753, "event": "gdrive_upload_skip_identical", "data": {"file": "finance_log_10000.log.br", "file_id": "1_VH1SD_J-AC_sR5DMIR-zX3nXRvOm_6f"}}
+{"ts": 1761989680.224533, "event": "gdrive_upload_skip_identical", "data": {"file": "finance_log_10000.log.br.hash", "file_id": "1Hak7G_uILvQNthYFwjcCv6hIuqd_HfdO"}}
+{"ts": 1761989680.7746682, "event": "gdrive_upload_skip_identical", "data": {"file": "t10k-labels-idx1-ubyte.br", "file_id": "1ovNQJ5zXnrfqthwbvMpPHMg8YqGqrSDn"}}
+{"ts": 1761989681.513603, "event": "gdrive_upload_skip_identical", "data": {"file": "t10k-labels-idx1-ubyte.br.hash", "file_id": "1ANlr61LSlD_fVe4zMEPbtE7AmZ1fX8sm"}}

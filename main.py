@@ -7,7 +7,7 @@ import hashlib
 import subprocess
 import json
 import datetime as dt
-import tempfile
+import csv
 from contextlib import contextmanager
 
 from google.auth.transport.requests import Request
@@ -34,6 +34,7 @@ from utils import (
 from backup_restore import backup_file, restore_file
 from simulate import simulate_ransomware_safe
 from simulate_header import simulate_header_corruption_safe
+from simulate_corrupt import simulate_corrupt_safe
 
 from progress import emit, stage  # Dashboard
 
@@ -42,9 +43,9 @@ from progress import emit, stage  # Dashboard
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--mode",
-    choices=("normal", "wannacry", "headercorrupt"),
+    choices=("normal", "wannacry", "headercorrupt", "corrupt"),
     default="normal",
-    help="Pilih mode: normal | wannacry | headercorrupt"
+    help="Pilih mode: normal | wannacry | headercorrupt | corrupt"
 )
 args = parser.parse_args()
 # =================================================
@@ -122,7 +123,11 @@ def find_file_in_folder_by_name(service, folder_id, name):
     files = resp.get("files", [])
     return files[0] if files else None
 
-
+def trigger_auto_restore(file_name):
+    restore_path = os.path.join("restore_results", file_name)
+    emit("auto_restore_triggered", file=file_name, restore_path=restore_path)
+    print(f"[RESTORE] Otomatis memulihkan {file_name} ke {restore_path}")
+   
 def upload_file_to_drive(service, folder_id, local_file_path, description=None, on_duplicate="update"):
     file_name = os.path.basename(local_file_path)
 
@@ -478,6 +483,7 @@ def transfer_to_airgap(output_folder, airgap_folder):
 def main():
     emit("pipeline_start")
 
+    # === 1. Siapkan Folder Dasar ===
     base_folder = os.path.dirname(SOURCE_FOLDER)
     output_folder = os.path.join(base_folder, "backup_results")
     restore_folder = os.path.join(base_folder, "restore_results")
@@ -485,7 +491,7 @@ def main():
     default_local_airgap = os.path.join(base_folder, AIRGAP_FOLDER_NAME)
     simulated_attack_folder = os.path.join(base_folder, SIMULATED_ATTACK_FOLDER)
 
-    # Hash.json di air-gapped drive bila ada, else lokal (pakai deteksi PS)
+     # === 2. Tentukan lokasi hash.json (Drive Airgap atau Lokal) ===
     airgap_hash_folder = os.path.join(f"{AIRGAP_DRIVE_LETTER}:\\", AIRGAP_FOLDER_NAME)
     if is_drive_mounted_ps(AIRGAP_DRIVE_LETTER):
         os.makedirs(airgap_hash_folder, exist_ok=True)
@@ -496,25 +502,25 @@ def main():
         hash_file_path = os.path.join(default_local_airgap, HASH_FILE)
         emit("hash_location_local", path=hash_file_path)
 
-    # Bersihkan folder hasil
-    for folder in [output_folder, restore_folder, evaluation_folder, default_local_airgap, simulated_attack_folder]:
+    # === 3. Bersihkan folder hasil lama ===
+    for folder in [SOURCE_FOLDER,output_folder, restore_folder, evaluation_folder, default_local_airgap, simulated_attack_folder]:
         if os.path.exists(folder):
             shutil.rmtree(folder)
             print(f"[CLEANUP] Folder '{folder}' dibersihkan.")
         ensure_dir(folder)
     emit("workspace_prepared",
-         output_folder=output_folder, restore_folder=restore_folder,
+         source_folder=SOURCE_FOLDER,output_folder=output_folder, restore_folder=restore_folder,
          evaluation_folder=evaluation_folder)
 
+     # === 4. Inisialisasi variabel dan load hash ===
     algoritma_list = ["lz4", "zstd", "gzip", "brotli", "snappy"]
     total_rasio = {algo: [] for algo in algoritma_list}
     total_waktu = {algo: [] for algo in algoritma_list}
 
-    # === Load hash dari lokasi hash ===
     hash_memory = load_json(hash_file_path, {})
     emit("hash_loaded", entries=len(hash_memory))
 
-    # === Koneksi Drive + tentukan folder sumber ===
+    # === 5. Autentikasi dan Ambil Data dari Google Drive ===
     if not CLOUD_UPLOAD_ENABLED:
         emit("error_config", message="CLOUD_UPLOAD_ENABLED=False")
         raise RuntimeError("CLOUD_UPLOAD_ENABLED=False. Untuk baca langsung dari Drive, aktifkan dulu di config.")
@@ -539,41 +545,64 @@ def main():
     emit("drive_enumerated", count=len(drive_files))
     print(f"[GDRIVE] Ditemukan {len(drive_files)} file di Drive sumber.")
 
-    # === Backup per file (langsung dari Drive; download sementara per file) ===
-    with tempfile.TemporaryDirectory() as tmpdir:
-        for file_id, rel_path, _md5 in drive_files:
-            local_tmp_path = os.path.join(tmpdir, rel_path)
-            ensure_dir(os.path.dirname(local_tmp_path))
-            print(f"[GDRIVE] Download sementara: {rel_path}")
+    # === 6. Proses Backup dari Drive ===
+    print("[BACKUP] Mulai proses backup dari Drive...")
 
-            with stage("download_file", file=rel_path):
-                download_drive_file(gsvc, file_id, local_tmp_path)
+    RANSOM_EXTS = [".wncry", ".encrypted", ".locked", ".enc", ".crypt"]
+    detected_ransom_files = []
 
-            original_hash = get_sha256(local_tmp_path)
-            emit("hash_original", file=rel_path, sha256=original_hash, size=os.path.getsize(local_tmp_path))
+    for file_id, rel_path, _md5 in drive_files:
 
-            # kunci hash pakai path relatif di Drive agar konsisten
-            hash_memory[rel_path] = original_hash
-            save_json(hash_file_path, hash_memory)
+        # Deteksi file ransomware (simulasi)
+        if any(rel_path.lower().endswith(ext) for ext in RANSOM_EXTS):
+            emit("ransom_file_detected", file=rel_path)
+            print(f"[RANSOM-DETECT] File mencurigakan terdeteksi: {rel_path}")
+            detected_ransom_files.append(rel_path)
 
-            ukuran_asli = os.path.getsize(local_tmp_path)
-            rasio_list, waktu_list = [], []
-            for algo in algoritma_list:
-                with stage("backup_file", file=rel_path, algo=algo):
-                    comp_file, durasi = backup_file(local_tmp_path, algo, output_folder, original_hash, source_folder=tmpdir)
-                ukuran_comp = os.path.getsize(comp_file)
-                rasio = (ukuran_comp / ukuran_asli) if ukuran_asli > 0 else 0
-                total_waktu[algo].append(durasi)
-                total_rasio[algo].append(rasio)
-                rasio_list.append(rasio)
-                waktu_list.append(durasi)
-                emit("backup_result", file=rel_path, algo=algo,
-                     size_in=ukuran_asli, size_out=ukuran_comp, ratio=rasio, duration_ms=durasi)
+            #catat di CSV log
+            csv_log_path = os.path.join(base_folder, "ransomware_detected_files.csv")
+            with open(csv_log_path, "a", newline="") as f:
+                writer = csv.writer(f)
+                if os.stat(csv_log_path).st_size == 0:
+                    writer.writerow(["file_path", "status", "timestamp"])
+                writer.writerow([rel_path, "DETECTED", dt.datetime.now().isoformat()])
 
-            save_per_file_plot(rel_path, algoritma_list, rasio_list, waktu_list, evaluation_folder)
-            emit("perfile_plot_saved", file=rel_path)
+            #langsung lanjut ke restore
+            trigger_auto_restore(rel_path)
+            continue
 
-    # === Transfer ke air-gap (fisik atau simulasi) ===
+        #proses normal (file aman) 
+        local_path = os.path.join(SOURCE_FOLDER, rel_path)
+        ensure_dir(os.path.dirname(local_path))
+        print(f"[GDRIVE] Download file: {rel_path}")
+
+        with stage("download_file", file=rel_path):
+                download_drive_file(gsvc, file_id, local_path)
+
+        original_hash = get_sha256(local_path)
+        hash_memory[rel_path] = original_hash
+        save_json(hash_file_path, hash_memory)
+        emit("hash_original", file=rel_path, sha256=original_hash, size=os.path.getsize(local_path))
+           
+
+        ukuran_asli = os.path.getsize(local_path)
+        rasio_list, waktu_list = [], []
+        for algo in algoritma_list:
+            with stage("backup_file", file=rel_path, algo=algo):
+                comp_file, durasi = backup_file(local_path, algo, output_folder, original_hash, source_folder=SOURCE_FOLDER)
+            ukuran_comp = os.path.getsize(comp_file)
+            rasio = (ukuran_comp / ukuran_asli) if ukuran_asli > 0 else 0
+            total_waktu[algo].append(durasi)
+            total_rasio[algo].append(rasio)
+            rasio_list.append(rasio)
+            waktu_list.append(durasi)
+            emit("backup_result", file=rel_path, algo=algo,
+                 size_in=ukuran_asli, size_out=ukuran_comp, ratio=rasio, duration_ms=durasi)
+
+        save_per_file_plot(rel_path, algoritma_list, rasio_list, waktu_list, evaluation_folder)
+        emit("perfile_plot_saved", file=rel_path)
+
+    # === 7. Transfer Backup ke Airgap (Drive Fisik atau Lokal) ===
     vhdx_candidates = [AIRGAP_VHDX_PATH]
     print(f"[DEBUG] is_drive_mounted_ps({AIRGAP_DRIVE_LETTER}) = {is_drive_mounted_ps(AIRGAP_DRIVE_LETTER)}", flush=True)
     print(f"[DEBUG] vhdx_candidates = {vhdx_candidates}", flush=True)
@@ -629,18 +658,18 @@ def main():
     if args.mode == "wannacry":
         simulated_extension = ".wncry"
 
-        total_files = sum(len(files) for _, _, files in os.walk(output_folder))
+        total_files = sum(len(files) for _, _, files in os.walk(SOURCE_FOLDER))
         emit("ransom_scan_start", total=total_files)
 
         with stage("ransom_encrypt", ext=simulated_extension):
             encrypted_files = simulate_ransomware_safe(
-                source_folder=output_folder,
+                source_folder=SOURCE_FOLDER,
                 extension=simulated_extension,
                 reset=getattr(args, "reset", False),
                 reset_key=getattr(args, "reset_key", False),
             )
         emit("ransom_simulation_end", count=len(encrypted_files))
-        print(f"[WANNA-CRY SIMULATION] {len(encrypted_files)} file terenkripsi di {output_folder} (ext {simulated_extension})")
+        print(f"[WANNA-CRY SIMULATION] {len(encrypted_files)} file terenkripsi di {SOURCE_FOLDER} (ext {simulated_extension})")
 
     elif args.mode == "headercorrupt":
     # hitung total file sebelum mulai
@@ -649,7 +678,7 @@ def main():
 
         with stage("hdr_corrupt", header_size=64):
             results = simulate_header_corruption_safe(
-                source_folder=output_folder,
+                source_folder=SOURCE_FOLDER,
                 header_size=64,
                 extensions=None,
                 dry_run=False,
@@ -672,6 +701,21 @@ def main():
           f"Ringkasan tersimpan di header_report.json"
         )
     
+    elif args.mode == "corrupt":
+        total_files = sum(len(files) for _, _, files in os.walk(output_folder))
+        emit("corrupt_scan_start", total=total_files)
+
+        with stage("corrupt_simulation", ratio=0.02):
+            corrupted_files = simulate_corrupt_safe(
+            output_folder=SOURCE_FOLDER,
+            damage_ratio=0.10,  # 10% isi file rusak
+            include_exts=None,  # None = semua file
+            delay=0.05,
+        )
+
+        emit("corrupt_done", count=len(corrupted_files))
+        print(f"[CORRUPT SIMULATION] {len(corrupted_files)} file berhasil dirusak di {output_folder}.")
+
     else:
         # mode "normal": tidak ada simulasi
       pass

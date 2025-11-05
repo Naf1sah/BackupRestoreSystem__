@@ -1,0 +1,13 @@
+{"ts": 1761989957.2662413, "event": "ransom_reset", "data": {}}
+{"ts": 1761989957.271619, "event": "header_reset", "data": {}}
+{"ts": 1761989957.2765577, "event": "pipeline_start", "data": {}}
+{"ts": 1761989959.5648994, "event": "hash_location_airgap", "data": {"path": "G:\\airgapped_storage\\hash_storage.json"}}
+{"ts": 1761989959.5758407, "event": "workspace_prepared", "data": {"source_folder": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\source_data", "output_folder": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\backup_results", "restore_folder": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\restore_results", "evaluation_folder": "D:\\PENS 2025\\Semester 6\\Kegiatan Nafisah\\PROJECT TA\\Data\\BackupSystemRestore\\Data\\evaluation"}}
+{"ts": 1761989959.5803754, "event": "hash_loaded", "data": {"entries": 8}}
+{"ts": 1761989959.5836892, "event": "drive_auth_start", "data": {}}
+{"ts": 1761989960.1521723, "event": "drive_auth_end", "data": {"duration_ms": 568, "ok": true}}
+{"ts": 1761989960.1558862, "event": "drive_auth_ok", "data": {}}
+{"ts": 1761989960.158954, "event": "drive_enumerate_start", "data": {}}
+{"ts": 1761989961.437931, "event": "drive_enumerate_end", "data": {"duration_ms": 1278, "ok": true}}
+{"ts": 1761989961.4731266, "event": "drive_enumerated", "data": {"count": 7}}
+{"ts": 1761989961.4778001, "event": "ransom_file_detected", "data": {"file": "A.csv.wncry"}}
